@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Smart Pong Difficulty</title>
+  <title>Pong With AI</title>
   <style>
     body {
       margin: 0;
@@ -23,6 +23,27 @@
       font-size: 24px;
       margin-bottom: 10px;
     }
+    #adminPanel {
+      display: none;
+      margin-top: 15px;
+      background: #222;
+      border: 2px solid #555;
+      padding: 10px;
+      width: 320px;
+      border-radius: 8px;
+    }
+    #adminPanel input, #adminPanel button {
+      margin: 5px 0;
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: none;
+    }
+    #adminPanel label {
+      font-weight: bold;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -31,26 +52,45 @@
   </div>
   <canvas id="pong" width="600" height="400"></canvas>
 
+  <div id="adminPanel">
+    <h3>🛠️ Admin Panel</h3>
+    <label>Your Score:</label>
+    <input type="number" id="setYourScore" min="0" />
+    <button onclick="updateYourScore()">Set Your Score</button>
+
+    <label>AI Score:</label>
+    <input type="number" id="setAiScore" min="0" />
+    <button onclick="updateAiScore()">Set AI Score</button>
+
+    <label>AI Speed:</label>
+    <input type="number" id="setAiSpeed" min="0" step="0.1" />
+    <button onclick="updateAiSpeed()">Set AI Speed</button>
+
+    <label>Difficulty:</label>
+    <select id="setDifficultySelect">
+      <option>Easy</option>
+      <option>Medium</option>
+      <option>Hard</option>
+      <option>Extreme</option>
+      <option>IMPOSSIBLE</option>
+    </select>
+    <button onclick="updateDifficulty()">Set Difficulty</button>
+
+    <label>Ball Speed X:</label>
+    <input type="number" id="setBallSpeedX" step="0.1" />
+    <label>Ball Speed Y:</label>
+    <input type="number" id="setBallSpeedY" step="0.1" />
+    <button onclick="updateBallSpeed()">Set Ball Speed</button>
+  </div>
+
   <script>
-    // 💻 Owner Console Commands
-window.setScore = function(player, score) {
-  if (player === "you") {
-    playerScore = score;
-    playerScoreEl.textContent = playerScore;
-    setDifficulty(playerScore);
-  } else if (player === "ai") {
-    aiScore = score;
-    aiScoreEl.textContent = aiScore;
-  } else {
-    console.log("Use: setScore('you', 10) or setScore('ai', 5)");
-  }
-};
     const canvas = document.getElementById("pong");
     const ctx = canvas.getContext("2d");
 
     const playerScoreEl = document.getElementById("playerScore");
     const aiScoreEl = document.getElementById("aiScore");
     const difficultyLabel = document.getElementById("difficultyLabel");
+    const adminPanel = document.getElementById("adminPanel");
 
     const paddleWidth = 10, paddleHeight = 80;
     let playerY = canvas.height / 2 - paddleHeight / 2;
@@ -70,10 +110,7 @@ window.setScore = function(player, score) {
       speedY: 4
     };
 
-    const keys = {
-      w: false,
-      s: false
-    };
+    const keys = { w: false, s: false };
 
     function setDifficulty(score) {
       if (score >= 1000) {
@@ -84,10 +121,10 @@ window.setScore = function(player, score) {
         aiSpeed = 6;
       } else if (score >= 15) {
         difficulty = "Hard";
-        aiSpeed = 4; // made easier
+        aiSpeed = 4;
       } else if (score >= 5) {
         difficulty = "Medium";
-        aiSpeed = 3; // made easier
+        aiSpeed = 3;
       } else {
         difficulty = "Easy";
         aiSpeed = 2;
@@ -197,6 +234,60 @@ window.setScore = function(player, score) {
       if (e.key === "w") keys.w = false;
       if (e.key === "s") keys.s = false;
     });
+
+    // Admin Panel functions
+    function updateYourScore() {
+      const val = parseInt(document.getElementById("setYourScore").value);
+      if (!isNaN(val) && val >= 0) {
+        playerScore = val;
+        playerScoreEl.textContent = playerScore;
+        setDifficulty(playerScore);
+      }
+    }
+
+    function updateAiScore() {
+      const val = parseInt(document.getElementById("setAiScore").value);
+      if (!isNaN(val) && val >= 0) {
+        aiScore = val;
+        aiScoreEl.textContent = aiScore;
+      }
+    }
+
+    function updateAiSpeed() {
+      const val = parseFloat(document.getElementById("setAiSpeed").value);
+      if (!isNaN(val) && val >= 0) {
+        aiSpeed = val;
+      }
+    }
+
+    function updateDifficulty() {
+      const val = document.getElementById("setDifficultySelect").value;
+      difficulty = val;
+      difficultyLabel.textContent = difficulty;
+      // Set AI speed according to difficulty chosen manually
+      switch (val) {
+        case "Easy": aiSpeed = 2; break;
+        case "Medium": aiSpeed = 3; break;
+        case "Hard": aiSpeed = 4; break;
+        case "Extreme": aiSpeed = 6; break;
+        case "IMPOSSIBLE": aiSpeed = 10; break;
+      }
+    }
+
+    function updateBallSpeed() {
+      const speedX = parseFloat(document.getElementById("setBallSpeedX").value);
+      const speedY = parseFloat(document.getElementById("setBallSpeedY").value);
+      if (!isNaN(speedX)) ball.speedX = speedX;
+      if (!isNaN(speedY)) ball.speedY = speedY;
+    }
+
+    // Show admin panel ONLY after correct password prompt on load
+    window.onload = () => {
+      const pass = prompt("Enter admin password:");
+      if (pass === "OPEN SESAME") {
+        adminPanel.style.display = "block";
+      }
+    };
 
     loop();
   </script>
