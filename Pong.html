@@ -27,7 +27,7 @@
 </head>
 <body>
   <div class="scoreboard">
-    Player: <span id="playerScore">0</span> | Opponent: <span id="aiScore">0</span>
+    You: <span id="playerScore">0</span> | AI: <span id="aiScore">0</span>
   </div>
   <canvas id="pong" width="600" height="400"></canvas>
 
@@ -41,7 +41,8 @@
     const paddleWidth = 10, paddleHeight = 80;
     let playerY = canvas.height / 2 - paddleHeight / 2;
     let aiY = canvas.height / 2 - paddleHeight / 2;
-    const paddleSpeed = 10;
+    const playerSpeed = 10;
+    const aiSpeed = 4;
 
     let playerScore = 0;
     let aiScore = 0;
@@ -56,9 +57,7 @@
 
     const keys = {
       w: false,
-      s: false,
-      ArrowUp: false,
-      ArrowDown: false
+      s: false
     };
 
     function drawRect(x, y, w, h, color) {
@@ -88,7 +87,7 @@
         ball.speedY = -ball.speedY;
       }
 
-      // Paddle collision
+      // Paddle collision (Player)
       if (
         ball.x <= 20 &&
         ball.y + ball.size > playerY &&
@@ -97,6 +96,7 @@
         ball.speedX = -ball.speedX;
       }
 
+      // Paddle collision (AI)
       if (
         ball.x + ball.size >= canvas.width - 20 &&
         ball.y + ball.size > aiY &&
@@ -118,11 +118,16 @@
         resetBall();
       }
 
-      // Paddle movement
-      if (keys.w && playerY > 0) playerY -= paddleSpeed;
-      if (keys.s && playerY + paddleHeight < canvas.height) playerY += paddleSpeed;
-      if (keys.ArrowUp && aiY > 0) aiY -= paddleSpeed;
-      if (keys.ArrowDown && aiY + paddleHeight < canvas.height) aiY += paddleSpeed;
+      // Player movement
+      if (keys.w && playerY > 0) playerY -= playerSpeed;
+      if (keys.s && playerY + paddleHeight < canvas.height) playerY += playerSpeed;
+
+      // AI movement (follows ball)
+      if (ball.y + ball.size / 2 < aiY + paddleHeight / 2 && aiY > 0) {
+        aiY -= aiSpeed;
+      } else if (ball.y + ball.size / 2 > aiY + paddleHeight / 2 && aiY + paddleHeight < canvas.height) {
+        aiY += aiSpeed;
+      }
     }
 
     function draw() {
