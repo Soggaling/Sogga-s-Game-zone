@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pong against AI</title>
+  <title>Smart Pong Difficulty</title>
   <style>
     body {
       margin: 0;
@@ -68,13 +68,13 @@
         aiSpeed = 10;
       } else if (score >= 30) {
         difficulty = "Extreme";
-        aiSpeed = 8;
+        aiSpeed = 6;
       } else if (score >= 15) {
         difficulty = "Hard";
-        aiSpeed = 6;
+        aiSpeed = 4; // made easier
       } else if (score >= 5) {
         difficulty = "Medium";
-        aiSpeed = 4;
+        aiSpeed = 3; // made easier
       } else {
         difficulty = "Easy";
         aiSpeed = 2;
@@ -110,7 +110,7 @@
       if (keys.w && playerY > 0) playerY -= playerSpeed;
       if (keys.s && playerY + paddleHeight < canvas.height) playerY += playerSpeed;
 
-      // AI movement based on difficulty
+      // AI logic
       if (difficulty !== "IMPOSSIBLE") {
         const aiCenter = aiY + paddleHeight / 2;
         const ballCenter = ball.y + ball.size / 2;
@@ -119,15 +119,15 @@
           else if (aiCenter > ballCenter && aiY > 0) aiY -= aiSpeed;
         }
       } else {
-        // IMPOSSIBLE MODE: AI curves ball toward you
+        // IMPOSSIBLE MODE: AI locks to ball and curves shots
         if (ball.x + ball.size >= canvas.width - 30) {
           let targetY = playerY + paddleHeight / 2;
           ball.speedY = (targetY - ball.y) * 0.1;
         }
-        aiY = ball.y - paddleHeight / 2; // Lock AI to ball
+        aiY = ball.y - paddleHeight / 2;
       }
 
-      // Paddle collision (player)
+      // Player paddle collision
       if (
         ball.x <= 20 &&
         ball.y + ball.size > playerY &&
@@ -136,7 +136,7 @@
         ball.speedX *= -1;
       }
 
-      // Paddle collision (AI)
+      // AI paddle collision
       if (
         ball.x + ball.size >= canvas.width - 20 &&
         ball.y + ball.size > aiY &&
@@ -145,7 +145,7 @@
         ball.speedX *= -1;
       }
 
-      // Score check
+      // Scoring
       if (ball.x < 0) {
         aiScore++;
         aiScoreEl.textContent = aiScore;
@@ -176,11 +176,13 @@
     }
 
     document.addEventListener("keydown", e => {
-      if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+      if (e.key === "w") keys.w = true;
+      if (e.key === "s") keys.s = true;
     });
 
     document.addEventListener("keyup", e => {
-      if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+      if (e.key === "w") keys.w = false;
+      if (e.key === "s") keys.s = false;
     });
 
     loop();
