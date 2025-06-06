@@ -32,6 +32,19 @@
   <canvas id="pong" width="600" height="400"></canvas>
 
   <script>
+    // 💻 Owner Console Commands
+window.setScore = function(player, score) {
+  if (player === "you") {
+    playerScore = score;
+    playerScoreEl.textContent = playerScore;
+    setDifficulty(playerScore);
+  } else if (player === "ai") {
+    aiScore = score;
+    aiScoreEl.textContent = aiScore;
+  } else {
+    console.log("Use: setScore('you', 10) or setScore('ai', 5)");
+  }
+};
     const canvas = document.getElementById("pong");
     const ctx = canvas.getContext("2d");
 
