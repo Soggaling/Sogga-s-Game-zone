@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pong With AI</title>
+  <title>Pong against AI</title>
   <style>
     body {
       margin: 0;
@@ -27,7 +27,7 @@
 </head>
 <body>
   <div class="scoreboard">
-    You: <span id="playerScore">0</span> | AI: <span id="aiScore">0</span>
+    You: <span id="playerScore">0</span> | AI: <span id="aiScore">0</span> | Difficulty: <span id="difficultyLabel">Easy</span>
   </div>
   <canvas id="pong" width="600" height="400"></canvas>
 
@@ -37,15 +37,17 @@
 
     const playerScoreEl = document.getElementById("playerScore");
     const aiScoreEl = document.getElementById("aiScore");
+    const difficultyLabel = document.getElementById("difficultyLabel");
 
     const paddleWidth = 10, paddleHeight = 80;
     let playerY = canvas.height / 2 - paddleHeight / 2;
     let aiY = canvas.height / 2 - paddleHeight / 2;
     const playerSpeed = 8;
-    const aiSpeed = 5;
 
     let playerScore = 0;
     let aiScore = 0;
+    let aiSpeed = 2;
+    let difficulty = "Easy";
 
     const ball = {
       x: canvas.width / 2,
@@ -59,6 +61,26 @@
       w: false,
       s: false
     };
+
+    function setDifficulty(score) {
+      if (score >= 1000) {
+        difficulty = "IMPOSSIBLE";
+        aiSpeed = 10;
+      } else if (score >= 30) {
+        difficulty = "Extreme";
+        aiSpeed = 8;
+      } else if (score >= 15) {
+        difficulty = "Hard";
+        aiSpeed = 6;
+      } else if (score >= 5) {
+        difficulty = "Medium";
+        aiSpeed = 4;
+      } else {
+        difficulty = "Easy";
+        aiSpeed = 2;
+      }
+      difficultyLabel.textContent = difficulty;
+    }
 
     function drawRect(x, y, w, h, color) {
       ctx.fillStyle = color;
@@ -78,31 +100,34 @@
     }
 
     function update() {
-      // Ball movement
       ball.x += ball.speedX;
       ball.y += ball.speedY;
 
-      // Wall bounce
       if (ball.y <= 0 || ball.y + ball.size >= canvas.height) {
         ball.speedY *= -1;
       }
 
-      // Player control
       if (keys.w && playerY > 0) playerY -= playerSpeed;
       if (keys.s && playerY + paddleHeight < canvas.height) playerY += playerSpeed;
 
-      // AI follows ball if ball moving toward AI
-      if (ball.speedX > 0) {
+      // AI movement based on difficulty
+      if (difficulty !== "IMPOSSIBLE") {
         const aiCenter = aiY + paddleHeight / 2;
         const ballCenter = ball.y + ball.size / 2;
-        if (aiCenter < ballCenter && aiY + paddleHeight < canvas.height) {
-          aiY += aiSpeed;
-        } else if (aiCenter > ballCenter && aiY > 0) {
-          aiY -= aiSpeed;
+        if (ball.speedX > 0) {
+          if (aiCenter < ballCenter && aiY + paddleHeight < canvas.height) aiY += aiSpeed;
+          else if (aiCenter > ballCenter && aiY > 0) aiY -= aiSpeed;
         }
+      } else {
+        // IMPOSSIBLE MODE: AI curves ball toward you
+        if (ball.x + ball.size >= canvas.width - 30) {
+          let targetY = playerY + paddleHeight / 2;
+          ball.speedY = (targetY - ball.y) * 0.1;
+        }
+        aiY = ball.y - paddleHeight / 2; // Lock AI to ball
       }
 
-      // Collision with player
+      // Paddle collision (player)
       if (
         ball.x <= 20 &&
         ball.y + ball.size > playerY &&
@@ -111,7 +136,7 @@
         ball.speedX *= -1;
       }
 
-      // Collision with AI
+      // Paddle collision (AI)
       if (
         ball.x + ball.size >= canvas.width - 20 &&
         ball.y + ball.size > aiY &&
@@ -120,7 +145,7 @@
         ball.speedX *= -1;
       }
 
-      // Scoring
+      // Score check
       if (ball.x < 0) {
         aiScore++;
         aiScoreEl.textContent = aiScore;
@@ -130,6 +155,7 @@
       if (ball.x > canvas.width) {
         playerScore++;
         playerScoreEl.textContent = playerScore;
+        setDifficulty(playerScore);
         resetBall();
       }
     }
