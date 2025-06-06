@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Pong Game</title>
   <style>
     body {
@@ -11,24 +11,40 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      color: white;
+      font-family: sans-serif;
+      flex-direction: column;
     }
     canvas {
       border: 2px solid #444;
       background: #111;
     }
+    .scoreboard {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
+  <div class="scoreboard">
+    Player: <span id="playerScore">0</span> | Opponent: <span id="aiScore">0</span>
+  </div>
   <canvas id="pong" width="600" height="400"></canvas>
 
   <script>
     const canvas = document.getElementById("pong");
     const ctx = canvas.getContext("2d");
 
+    const playerScoreEl = document.getElementById("playerScore");
+    const aiScoreEl = document.getElementById("aiScore");
+
     const paddleWidth = 10, paddleHeight = 80;
     let playerY = canvas.height / 2 - paddleHeight / 2;
     let aiY = canvas.height / 2 - paddleHeight / 2;
-    const paddleSpeed = 6;
+    const paddleSpeed = 10;
+
+    let playerScore = 0;
+    let aiScore = 0;
 
     const ball = {
       x: canvas.width / 2,
@@ -36,6 +52,13 @@
       size: 10,
       speedX: 4,
       speedY: 4
+    };
+
+    const keys = {
+      w: false,
+      s: false,
+      ArrowUp: false,
+      ArrowDown: false
     };
 
     function drawRect(x, y, w, h, color) {
@@ -56,11 +79,11 @@
     }
 
     function update() {
-      // Move ball
+      // Ball movement
       ball.x += ball.speedX;
       ball.y += ball.speedY;
 
-      // Wall collision
+      // Wall bounce
       if (ball.y <= 0 || ball.y + ball.size >= canvas.height) {
         ball.speedY = -ball.speedY;
       }
@@ -82,10 +105,24 @@
         ball.speedX = -ball.speedX;
       }
 
-      // Score check
-      if (ball.x < 0 || ball.x > canvas.width) {
+      // Scoring
+      if (ball.x < 0) {
+        aiScore++;
+        aiScoreEl.textContent = aiScore;
         resetBall();
       }
+
+      if (ball.x > canvas.width) {
+        playerScore++;
+        playerScoreEl.textContent = playerScore;
+        resetBall();
+      }
+
+      // Paddle movement
+      if (keys.w && playerY > 0) playerY -= paddleSpeed;
+      if (keys.s && playerY + paddleHeight < canvas.height) playerY += paddleSpeed;
+      if (keys.ArrowUp && aiY > 0) aiY -= paddleSpeed;
+      if (keys.ArrowDown && aiY + paddleHeight < canvas.height) aiY += paddleSpeed;
     }
 
     function draw() {
@@ -94,7 +131,6 @@
 
       drawRect(10, playerY, paddleWidth, paddleHeight, "white");
       drawRect(canvas.width - 20, aiY, paddleWidth, paddleHeight, "white");
-
       drawBall();
     }
 
@@ -104,12 +140,12 @@
       requestAnimationFrame(loop);
     }
 
-    // Controls
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "w") playerY -= paddleSpeed;
-      if (e.key === "s") playerY += paddleSpeed;
-      if (e.key === "ArrowUp") aiY -= paddleSpeed;
-      if (e.key === "ArrowDown") aiY += paddleSpeed;
+    document.addEventListener("keydown", e => {
+      if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+    });
+
+    document.addEventListener("keyup", e => {
+      if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
     });
 
     loop();
