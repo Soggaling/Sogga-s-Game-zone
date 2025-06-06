@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Pong with Admin Panel</title>
+<title>Ping Pong with AI</title>
 <style>
   body {
     margin: 0;
@@ -153,6 +153,13 @@
     ctx.fillText(`Player: ${playerScore}`, 20, 30);
     ctx.fillText(`AI: ${aiScore}`, canvas.width - 120, 30);
   }
+  function drawDifficulty() {
+    ctx.font = "20px monospace";
+    ctx.fillStyle = "lightblue";
+    ctx.textAlign = "center";
+    ctx.fillText(`Difficulty: ${difficulty.toUpperCase()}`, canvas.width / 2, 30);
+    ctx.textAlign = "start"; // reset alignment
+  }
 
   // Reset ball to center and random direction
   function resetBall() {
@@ -199,7 +206,6 @@
     ) {
       ball.x = 20 + paddleWidth;
       ball.speedX = -ball.speedX;
-      // Add some vertical speed change based on hit position
       const collidePoint = (ball.y + ball.size/2) - (playerY + paddleHeight/2);
       ball.speedY = collidePoint * 0.2;
     }
@@ -213,7 +219,6 @@
     ) {
       ball.x = canvas.width - 20 - paddleWidth - ball.size;
       ball.speedX = -ball.speedX;
-      // Add some vertical speed change based on hit position
       const collidePoint = (ball.y + ball.size/2) - (aiY + paddleHeight/2);
       ball.speedY = collidePoint * 0.2;
     }
@@ -233,12 +238,9 @@
     if (difficulty === "impossible") {
       // AI controls the ball directly to always win
       ball.speedX = -Math.abs(ballSpeed);
-      // Curve the ball randomly a bit
       ball.speedY += (Math.random() - 0.5) * 0.4;
-      // AI paddle follows ball perfectly
       aiY = ball.y - paddleHeight / 2;
     } else {
-      // AI tries to follow the ball's y with max speed aiSpeed
       const targetY = ball.y - paddleHeight / 2;
       if (aiY + paddleHeight / 2 < targetY) {
         aiY += aiSpeed;
@@ -263,14 +265,13 @@
 
     drawBall();
     drawScores();
+    drawDifficulty();
   }
 
   // Handle player paddle movement based on keys held
   function handlePlayerMovement() {
     if (keys["w"]) playerY -= 6;
     if (keys["s"]) playerY += 6;
-    if (keys["arrowup"]) aiY -= 6; // manual AI control
-    if (keys["arrowdown"]) aiY += 6;
   }
 
   function gameLoop() {
@@ -325,7 +326,6 @@
     const newBallSpeed = Number(ballSpeedInput.value);
     if (!isNaN(newBallSpeed) && newBallSpeed > 0) {
       ballSpeed = newBallSpeed;
-      // Update ball direction but keep sign
       ball.speedX = (ball.speedX > 0 ? 1 : -1) * ballSpeed;
       ball.speedY = (ball.speedY > 0 ? 1 : -1) * ballSpeed;
     }
@@ -336,7 +336,6 @@
     adminPanel.classList.remove("open");
   });
 
-  // Start the game loop
   gameLoop();
 </script>
 
