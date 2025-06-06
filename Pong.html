@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pong Game</title>
+  <title>Pong Game with Smart AI</title>
   <style>
     body {
       margin: 0;
@@ -42,7 +42,7 @@
     let playerY = canvas.height / 2 - paddleHeight / 2;
     let aiY = canvas.height / 2 - paddleHeight / 2;
     const playerSpeed = 10;
-    const aiSpeed = 4;
+    const aiMaxSpeed = 5;
 
     let playerScore = 0;
     let aiScore = 0;
@@ -77,6 +77,25 @@
       ball.speedY = 4 * (Math.random() > 0.5 ? 1 : -1);
     }
 
+    function predictBallY() {
+      // Predict where ball will be when it reaches AI's x
+      let simX = ball.x;
+      let simY = ball.y;
+      let simVX = ball.speedX;
+      let simVY = ball.speedY;
+
+      while (simX < canvas.width - 30) {
+        simX += simVX;
+        simY += simVY;
+
+        if (simY <= 0 || simY + ball.size >= canvas.height) {
+          simVY *= -1;
+        }
+      }
+
+      return simY;
+    }
+
     function update() {
       // Ball movement
       ball.x += ball.speedX;
@@ -87,7 +106,7 @@
         ball.speedY = -ball.speedY;
       }
 
-      // Paddle collision (Player)
+      // Paddle collision
       if (
         ball.x <= 20 &&
         ball.y + ball.size > playerY &&
@@ -96,7 +115,6 @@
         ball.speedX = -ball.speedX;
       }
 
-      // Paddle collision (AI)
       if (
         ball.x + ball.size >= canvas.width - 20 &&
         ball.y + ball.size > aiY &&
@@ -105,7 +123,7 @@
         ball.speedX = -ball.speedX;
       }
 
-      // Scoring
+      // Score
       if (ball.x < 0) {
         aiScore++;
         aiScoreEl.textContent = aiScore;
@@ -118,15 +136,18 @@
         resetBall();
       }
 
-      // Player movement
+      // Player control
       if (keys.w && playerY > 0) playerY -= playerSpeed;
       if (keys.s && playerY + paddleHeight < canvas.height) playerY += playerSpeed;
 
-      // AI movement (follows ball)
-      if (ball.y + ball.size / 2 < aiY + paddleHeight / 2 && aiY > 0) {
-        aiY -= aiSpeed;
-      } else if (ball.y + ball.size / 2 > aiY + paddleHeight / 2 && aiY + paddleHeight < canvas.height) {
-        aiY += aiSpeed;
+      // AI logic (smart)
+      if (ball.speedX > 0) {
+        const targetY = predictBallY() - paddleHeight / 2;
+        if (aiY < targetY) {
+          aiY += Math.min(aiMaxSpeed, targetY - aiY);
+        } else if (aiY > targetY) {
+          aiY -= Math.min(aiMaxSpeed, aiY - targetY);
+        }
       }
     }
 
