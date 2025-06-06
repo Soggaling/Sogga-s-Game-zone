@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pong With AI</title>
+  <title>PONG with AI</title>
   <style>
     body {
       margin: 0;
@@ -15,9 +15,15 @@
       font-family: sans-serif;
       flex-direction: column;
     }
+    .game-container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
     canvas {
       border: 2px solid #444;
       background: #111;
+      display: block;
     }
     .scoreboard {
       font-size: 24px;
@@ -25,24 +31,35 @@
     }
     #adminPanel {
       display: none;
-      margin-top: 15px;
       background: #222;
       border: 2px solid #555;
       padding: 10px;
       width: 320px;
       border-radius: 8px;
+      color: white;
+      font-family: sans-serif;
     }
-    #adminPanel input, #adminPanel button {
+    #adminPanel input,
+    #adminPanel button,
+    #adminPanel select {
       margin: 5px 0;
       width: 100%;
       padding: 8px;
       font-size: 14px;
       border-radius: 4px;
       border: none;
+      box-sizing: border-box;
     }
     #adminPanel label {
       font-weight: bold;
       font-size: 14px;
+    }
+    #adminPanel h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-weight: bold;
+      font-size: 18px;
+      text-align: center;
     }
   </style>
 </head>
@@ -50,37 +67,40 @@
   <div class="scoreboard">
     You: <span id="playerScore">0</span> | AI: <span id="aiScore">0</span> | Difficulty: <span id="difficultyLabel">Easy</span>
   </div>
-  <canvas id="pong" width="600" height="400"></canvas>
 
-  <div id="adminPanel">
-    <h3>🛠️ Admin Panel</h3>
-    <label>Your Score:</label>
-    <input type="number" id="setYourScore" min="0" />
-    <button onclick="updateYourScore()">Set Your Score</button>
+  <div class="game-container">
+    <canvas id="pong" width="600" height="400"></canvas>
 
-    <label>AI Score:</label>
-    <input type="number" id="setAiScore" min="0" />
-    <button onclick="updateAiScore()">Set AI Score</button>
+    <div id="adminPanel">
+      <h3>🛠️ Admin Panel</h3>
+      <label>Your Score:</label>
+      <input type="number" id="setYourScore" min="0" />
+      <button onclick="updateYourScore()">Set Your Score</button>
 
-    <label>AI Speed:</label>
-    <input type="number" id="setAiSpeed" min="0" step="0.1" />
-    <button onclick="updateAiSpeed()">Set AI Speed</button>
+      <label>AI Score:</label>
+      <input type="number" id="setAiScore" min="0" />
+      <button onclick="updateAiScore()">Set AI Score</button>
 
-    <label>Difficulty:</label>
-    <select id="setDifficultySelect">
-      <option>Easy</option>
-      <option>Medium</option>
-      <option>Hard</option>
-      <option>Extreme</option>
-      <option>IMPOSSIBLE</option>
-    </select>
-    <button onclick="updateDifficulty()">Set Difficulty</button>
+      <label>AI Speed:</label>
+      <input type="number" id="setAiSpeed" min="0" step="0.1" />
+      <button onclick="updateAiSpeed()">Set AI Speed</button>
 
-    <label>Ball Speed X:</label>
-    <input type="number" id="setBallSpeedX" step="0.1" />
-    <label>Ball Speed Y:</label>
-    <input type="number" id="setBallSpeedY" step="0.1" />
-    <button onclick="updateBallSpeed()">Set Ball Speed</button>
+      <label>Difficulty:</label>
+      <select id="setDifficultySelect">
+        <option>Easy</option>
+        <option>Medium</option>
+        <option>Hard</option>
+        <option>Extreme</option>
+        <option>IMPOSSIBLE</option>
+      </select>
+      <button onclick="updateDifficulty()">Set Difficulty</button>
+
+      <label>Ball Speed X:</label>
+      <input type="number" id="setBallSpeedX" step="0.1" />
+      <label>Ball Speed Y:</label>
+      <input type="number" id="setBallSpeedY" step="0.1" />
+      <button onclick="updateBallSpeed()">Set Ball Speed</button>
+    </div>
   </div>
 
   <script>
@@ -160,7 +180,7 @@
       if (keys.w && playerY > 0) playerY -= playerSpeed;
       if (keys.s && playerY + paddleHeight < canvas.height) playerY += playerSpeed;
 
-      // AI logic
+      // AI logic uses current aiSpeed now:
       if (difficulty !== "IMPOSSIBLE") {
         const aiCenter = aiY + paddleHeight / 2;
         const ballCenter = ball.y + ball.size / 2;
@@ -228,6 +248,16 @@
     document.addEventListener("keydown", e => {
       if (e.key === "w") keys.w = true;
       if (e.key === "s") keys.s = true;
+
+      if (e.key === "]" && adminPanel.style.display === "none") {
+        const pass = prompt("Enter admin password:");
+        if (pass === "pookieAdmin123") {
+          adminPanel.style.display = "block";
+          alert("Admin panel unlocked!");
+        } else {
+          alert("Wrong password, bro.");
+        }
+      }
     });
 
     document.addEventListener("keyup", e => {
@@ -235,7 +265,6 @@
       if (e.key === "s") keys.s = false;
     });
 
-    // Admin Panel functions
     function updateYourScore() {
       const val = parseInt(document.getElementById("setYourScore").value);
       if (!isNaN(val) && val >= 0) {
@@ -264,7 +293,6 @@
       const val = document.getElementById("setDifficultySelect").value;
       difficulty = val;
       difficultyLabel.textContent = difficulty;
-      // Set AI speed according to difficulty chosen manually
       switch (val) {
         case "Easy": aiSpeed = 2; break;
         case "Medium": aiSpeed = 3; break;
@@ -280,14 +308,6 @@
       if (!isNaN(speedX)) ball.speedX = speedX;
       if (!isNaN(speedY)) ball.speedY = speedY;
     }
-
-    // Show admin panel ONLY after correct password prompt on load
-    window.onload = () => {
-      const pass = prompt("Enter admin password:");
-      if (pass === "OPEN SESAME") {
-        adminPanel.style.display = "block";
-      }
-    };
 
     loop();
   </script>
