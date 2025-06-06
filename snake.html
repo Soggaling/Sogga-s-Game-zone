@@ -67,7 +67,6 @@
     });
 
     function getRandomFood() {
-      // Make sure food doesn't spawn on the snake!
       let newFood;
       do {
         newFood = {
@@ -78,23 +77,19 @@
       return newFood;
     }
 
-    // Draw snake & food normally
     function drawGame() {
       ctx.fillStyle = "#111";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw food
       ctx.fillStyle = "red";
       ctx.fillRect(food.x, food.y, box, box);
 
-      // Draw snake
       for (let i = 0; i < snake.length; i++) {
         ctx.fillStyle = i === 0 ? "lime" : "green";
         ctx.fillRect(snake[i].x, snake[i].y, box, box);
       }
     }
 
-    // Draw death animation: flashing red snake
     function drawDeathFlash(frame) {
       ctx.fillStyle = "#111";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -120,6 +115,7 @@
           clearInterval(flashInterval);
           gameOverDisplay.textContent = `💀 Game Over! Final Score: ${score}`;
           gameOverDisplay.style.display = "block";
+          setTimeout(() => location.reload(), 1500); // Reload after 1.5 seconds
         }
       }, 150);
     }
@@ -133,19 +129,16 @@
       if (direction === "LEFT") head.x -= box;
       if (direction === "RIGHT") head.x += box;
 
-      // Check collisions with walls
       if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
         return gameOver();
       }
 
-      // Check collision with self
       if (snake.some((segment, i) => i !== 0 && segment.x === head.x && segment.y === head.y)) {
         return gameOver();
       }
 
       snake.unshift(head);
 
-      // Eating food?
       if (head.x === food.x && head.y === food.y) {
         score++;
         scoreDisplay.textContent = `Score: ${score}`;
@@ -157,7 +150,6 @@
       drawGame();
     }
 
-    // Start game loop
     gameInterval = setInterval(update, 100);
   </script>
 </body>
