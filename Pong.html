@@ -286,7 +286,7 @@
     keys[e.key.toLowerCase()] = true;
 
     // Trigger admin password prompt on ']'
-    if (e.key === "]") {
+    if (e.key === "[") {
       if (!adminPanel.classList.contains("open")) {
         const pass = prompt("Enter admin password:");
         if (pass === "OPEN SESAME") {
