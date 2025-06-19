@@ -1,68 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Ping Pong with AI</title>
-<style>
-  body {
-    margin: 0;
-    background: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    font-family: sans-serif;
-    color: white;
-    overflow: hidden;
-  }
-  canvas {
-    border: 2px solid #444;
-    background: #111;
-  }
-  #adminPanel {
-    position: fixed;
-    top: 0;
-    right: -320px;
-    width: 300px;
-    height: 100vh;
-    background: #222;
-    border-left: 2px solid #555;
-    padding: 20px;
-    box-sizing: border-box;
-    transition: right 0.3s ease;
-    overflow-y: auto;
-    z-index: 1000;
-  }
-  #adminPanel.open {
-    right: 0;
-  }
-  #adminPanel label {
-    display: block;
-    margin: 10px 0 5px;
-  }
-  #adminPanel input[type="number"],
-  #adminPanel select {
-    width: 100%;
-    padding: 5px;
-    background: #333;
-    border: none;
-    color: white;
-    font-size: 1rem;
-  }
-  #adminPanel button {
-    margin-top: 15px;
-    padding: 10px;
-    width: 100%;
-    background: #444;
-    border: none;
-    color: white;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-  #adminPanel button:hover {
-    background: #666;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>Ping Pong with AI</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+    canvas {
+      border: 2px solid #444;
+      background: #111;
+    }
+    #adminPanel {
+      position: fixed;
+      top: 0;
+      right: -320px;
+      width: 300px;
+      height: 100vh;
+      background: #222;
+      border-left: 2px solid #555;
+      padding: 20px;
+      box-sizing: border-box;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    #adminPanel.open {
+      right: 0;
+    }
+    #adminPanel label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    #adminPanel input[type="number"],
+    #adminPanel select {
+      width: 100%;
+      padding: 5px;
+      background: #333;
+      border: none;
+      color: white;
+      font-size: 1rem;
+    }
+    #adminPanel button {
+      margin-top: 15px;
+      padding: 10px;
+      width: 100%;
+      background: #444;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    #adminPanel button:hover {
+      background: #666;
+    }
+  </style>
 </head>
 <body>
 
@@ -89,6 +89,11 @@
   <label for="ballSpeedInput">Ball Speed</label>
   <input type="number" id="ballSpeedInput" min="0.1" max="20" step="0.1" />
 
+  <label>
+    <input type="checkbox" id="aimbotToggle" />
+    Enable Aimbot
+  </label>
+
   <button id="applyBtn">Apply Changes</button>
   <button id="closeBtn">Close Admin Panel</button>
 </div>
@@ -101,19 +106,18 @@
   let playerY = canvas.height / 2 - paddleHeight / 2;
   let aiY = canvas.height / 2 - paddleHeight / 2;
 
-  // Difficulty base AI speeds
   const difficultySettings = {
     easy: 2,
     medium: 3,
     hard: 4,
     extreme: 5,
-    impossible: 0 // special case, AI controls ball
+    impossible: 0
   };
 
-  // Start settings
   let difficulty = "easy";
   let aiSpeed = difficultySettings[difficulty];
   let ballSpeed = 4;
+  let aimbotEnabled = false;
 
   const ball = {
     x: canvas.width / 2,
@@ -126,42 +130,42 @@
   let playerScore = 0;
   let aiScore = 0;
 
-  // Admin panel elements
   const adminPanel = document.getElementById("adminPanel");
   const scoreInput = document.getElementById("scoreInput");
   const aiSpeedInput = document.getElementById("aiSpeedInput");
   const difficultySelect = document.getElementById("difficultySelect");
   const ballSpeedInput = document.getElementById("ballSpeedInput");
+  const aimbotToggle = document.getElementById("aimbotToggle");
   const applyBtn = document.getElementById("applyBtn");
   const closeBtn = document.getElementById("closeBtn");
 
-  // Track pressed keys
   const keys = {};
 
-  // Draw functions
   function drawRect(x, y, w, h, color) {
     ctx.fillStyle = color;
     ctx.fillRect(x, y, w, h);
   }
+
   function drawBall() {
     ctx.fillStyle = "white";
     ctx.fillRect(ball.x, ball.y, ball.size, ball.size);
   }
+
   function drawScores() {
     ctx.font = "24px monospace";
     ctx.fillStyle = "white";
     ctx.fillText(`Player: ${playerScore}`, 20, 30);
     ctx.fillText(`AI: ${aiScore}`, canvas.width - 120, 30);
   }
+
   function drawDifficulty() {
     ctx.font = "20px monospace";
     ctx.fillStyle = "lightblue";
     ctx.textAlign = "center";
     ctx.fillText(`Difficulty: ${difficulty.toUpperCase()}`, canvas.width / 2, 30);
-    ctx.textAlign = "start"; // reset alignment
+    ctx.textAlign = "start";
   }
 
-  // Reset ball to center and random direction
   function resetBall() {
     ball.x = canvas.width / 2;
     ball.y = canvas.height / 2;
@@ -169,7 +173,6 @@
     ball.speedY = ballSpeed * (Math.random() > 0.5 ? 1 : -1);
   }
 
-  // Update difficulty based on score
   function updateDifficulty() {
     if (playerScore >= 1000) difficulty = "impossible";
     else if (playerScore >= 30) difficulty = "extreme";
@@ -182,22 +185,14 @@
     }
   }
 
-  // Update positions and logic
   function update() {
-    // Move ball
     ball.x += ball.speedX;
     ball.y += ball.speedY;
 
-    // Ball collision with top/bottom
-    if (ball.y <= 0) {
-      ball.y = 0;
-      ball.speedY = -ball.speedY;
-    } else if (ball.y + ball.size >= canvas.height) {
-      ball.y = canvas.height - ball.size;
+    if (ball.y <= 0 || ball.y + ball.size >= canvas.height) {
       ball.speedY = -ball.speedY;
     }
 
-    // Ball collision with player paddle
     if (
       ball.x <= 20 + paddleWidth &&
       ball.x >= 10 &&
@@ -206,11 +201,17 @@
     ) {
       ball.x = 20 + paddleWidth;
       ball.speedX = -ball.speedX;
-      const collidePoint = (ball.y + ball.size/2) - (playerY + paddleHeight/2);
-      ball.speedY = collidePoint * 0.2;
+
+      if (aimbotEnabled && difficulty !== "impossible") {
+        const topGap = aiY;
+        const bottomGap = canvas.height - (aiY + paddleHeight);
+        ball.speedY = topGap > bottomGap ? -Math.abs(ballSpeed) : Math.abs(ballSpeed);
+      } else {
+        const collidePoint = (ball.y + ball.size / 2) - (playerY + paddleHeight / 2);
+        ball.speedY = collidePoint * 0.2;
+      }
     }
 
-    // Ball collision with AI paddle
     if (
       ball.x + ball.size >= canvas.width - 20 - paddleWidth &&
       ball.x + ball.size <= canvas.width - 20 &&
@@ -219,11 +220,10 @@
     ) {
       ball.x = canvas.width - 20 - paddleWidth - ball.size;
       ball.speedX = -ball.speedX;
-      const collidePoint = (ball.y + ball.size/2) - (aiY + paddleHeight/2);
+      const collidePoint = (ball.y + ball.size / 2) - (aiY + paddleHeight / 2);
       ball.speedY = collidePoint * 0.2;
     }
 
-    // Score logic
     if (ball.x < 0) {
       aiScore++;
       resetBall();
@@ -234,9 +234,7 @@
 
     updateDifficulty();
 
-    // AI movement logic
     if (difficulty === "impossible") {
-      // AI controls the ball directly to always win
       ball.speedX = -Math.abs(ballSpeed);
       ball.speedY += (Math.random() - 0.5) * 0.4;
       aiY = ball.y - paddleHeight / 2;
@@ -244,14 +242,11 @@
       const targetY = ball.y - paddleHeight / 2;
       if (aiY + paddleHeight / 2 < targetY) {
         aiY += aiSpeed;
-        if (aiY + paddleHeight / 2 > targetY) aiY = targetY;
       } else if (aiY + paddleHeight / 2 > targetY) {
         aiY -= aiSpeed;
-        if (aiY + paddleHeight / 2 < targetY) aiY = targetY;
       }
     }
 
-    // Keep paddles inside canvas
     playerY = Math.max(0, Math.min(canvas.height - paddleHeight, playerY));
     aiY = Math.max(0, Math.min(canvas.height - paddleHeight, aiY));
   }
@@ -268,7 +263,6 @@
     drawDifficulty();
   }
 
-  // Handle player paddle movement based on keys held
   function handlePlayerMovement() {
     if (keys["w"]) playerY -= 6;
     if (keys["s"]) playerY += 6;
@@ -281,21 +275,19 @@
     requestAnimationFrame(gameLoop);
   }
 
-  // Keyboard events for player movement and admin panel trigger
   window.addEventListener("keydown", e => {
     keys[e.key.toLowerCase()] = true;
 
-    // Trigger admin password prompt on ']'
     if (e.key === "[") {
       if (!adminPanel.classList.contains("open")) {
         const pass = prompt("Enter admin password:");
         if (pass === "OPEN SESAME") {
           adminPanel.classList.add("open");
-          // Fill inputs with current values
           scoreInput.value = playerScore;
           aiSpeedInput.value = aiSpeed.toFixed(1);
           difficultySelect.value = difficulty;
           ballSpeedInput.value = ballSpeed.toFixed(1);
+          aimbotToggle.checked = aimbotEnabled;
         }
       }
     }
@@ -305,15 +297,14 @@
     keys[e.key.toLowerCase()] = false;
   });
 
-  // Admin panel buttons
   applyBtn.addEventListener("click", () => {
     const newScore = Number(scoreInput.value);
-    if (!isNaN(newScore) && newScore >= 0) {
+    if (!isNaN(newScore)) {
       playerScore = newScore;
       updateDifficulty();
     }
     const newAISpeed = Number(aiSpeedInput.value);
-    if (!isNaN(newAISpeed) && newAISpeed > 0) {
+    if (!isNaN(newAISpeed)) {
       aiSpeed = newAISpeed;
     }
     const newDifficulty = difficultySelect.value;
@@ -329,6 +320,7 @@
       ball.speedX = (ball.speedX > 0 ? 1 : -1) * ballSpeed;
       ball.speedY = (ball.speedY > 0 ? 1 : -1) * ballSpeed;
     }
+    aimbotEnabled = aimbotToggle.checked;
     alert("Settings updated!");
   });
 
